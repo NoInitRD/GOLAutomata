@@ -17,7 +17,6 @@ public:
         vector<vector<bool>> _vector;
 
         void showCells(void);
-        int totalCells(void);
         void flipCellStatus(uint x, uint y);
         bool liveOrDie(uint x, uint y);
         bool getCellStatus(uint x, uint y);
@@ -30,16 +29,9 @@ public:
         Arena(Arena const &src) {_vector = src._vector;}
 };
 
-int Arena::totalCells(void) { return _vector.size() * _vector.size(); }
+bool Arena::cellExists(uint x, uint y) { return x < _vector.size() && y < _vector.size(); }
 
-void clearScreen(void)
-{
-        for(int i = 0; i < 100; i++)
-        {
-                cout << "\033[2J\033[1;1H";
-                //cout << "\n\n";
-        }
-}
+void clearScreen(void) { cout << "\033[2J\033[1;1H"; }
 
 void Arena::showCells(void)
 {
@@ -54,8 +46,6 @@ void Arena::showCells(void)
                 cout << endl;
         }
 }
-
-bool Arena::cellExists(uint x, uint y) { return x < _vector.size() && y < _vector.size(); }
 
 void Arena::flipCellStatus(uint x, uint y)
 {
@@ -116,10 +106,7 @@ void Arena::generateRandom(void)
         }
 }
 
-void sleep(int ms)
-{
-        this_thread::sleep_for(std::chrono::milliseconds(ms));
-}
+void sleep(int ms) { this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
 int main()
 {
