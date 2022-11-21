@@ -19,6 +19,8 @@ class Arena {
 public:
         vector<vector<bool> > _vector;
 	int _generation;
+	int _sizeX; 
+	int _sizeY;
 
         void flipCellStatus(uint x, uint y);
         bool liveOrDie(uint x, uint y);
@@ -28,8 +30,9 @@ public:
         void generateRandom(void);
 
         Arena(){};
-        Arena(int const size): _vector(size, vector<bool>(size, false)) { _generation = 1; }
-        Arena(Arena const &src) { _vector = src._vector; }
+	Arena(int const sizeX, int const sizeY): _vector(sizeX, vector<bool>(sizeY, false)), _sizeX(sizeX), _sizeY(sizeY) { _generation = 1; }
+	Arena(int const size): _vector(size, vector<bool>(size, false)), _sizeX(size), _sizeY(size) { _generation = 1; }
+	Arena(Arena const &src) { _vector = src._vector; }
 };
 
 bool Arena::cellExists(uint x, uint y) { return x < _vector.size() && y < _vector.size(); }
@@ -75,9 +78,9 @@ void Arena::ShowAndUpdateCells(void)
         vector<vector<bool> > newVector(_vector.size(), vector<bool>(_vector.size(), false));
 
 	//updates each cell in 2D vector
-        for(uint y = 0; y < _vector.size(); y++)
+        for(uint y = 0; y < _sizeY; y++)
         {
-                for(uint x = 0; x < _vector.size(); x++)
+                for(uint x = 0; x < _sizeX; x++)
                 {
 			if(_vector[x][y]) cout << "▄ ";
                         else cout << "  ";
@@ -101,9 +104,9 @@ bool randomBool(void)
 
 void Arena::generateRandom(void)
 {
-        for(uint y = 0; y < _vector.size(); y++)
+        for(uint y = 0; y < _sizeY; y++)
 	{
-                for(uint x = 0; x < _vector.size(); x++)
+                for(uint x = 0; x < _sizeX; x++)
 		{
                         _vector[x][y] = randomBool();
 		}
@@ -114,7 +117,7 @@ void sleep(int ms) { this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
 int main()
 {
-        Arena *a = new Arena(60);
+        Arena *a = new Arena(100,60);
 
 	a->generateRandom(); //randomly fills arena with cells
 
