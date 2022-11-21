@@ -18,12 +18,11 @@ class Arena {
 public:
         vector<vector<bool> > _vector;
 
-        void showCells(void);
         void flipCellStatus(uint x, uint y);
         bool liveOrDie(uint x, uint y);
         bool getCellStatus(uint x, uint y);
         bool cellExists(uint x, uint y);
-        void updateCells(void);
+        void ShowAndUpdateCells(void);
         void generateRandom(void);
 
         Arena(){};
@@ -34,20 +33,6 @@ public:
 bool Arena::cellExists(uint x, uint y) { return x < _vector.size() && y < _vector.size(); }
 
 void clearScreen(void) { cout << "\033[2J\033[1;1H"; }
-
-void Arena::showCells(void)
-{
-	//displays each cell in a grid using 2D vector
-        for(uint y = 0; y < _vector.size(); y++)
-        {
-                for(uint x = 0; x < _vector.size(); x++)
-                {
-                        if(_vector[x][y]) cout << "▄ ";
-                        else cout << "  ";
-                }
-                cout << endl;
-        }
-}
 
 void Arena::flipCellStatus(uint x, uint y)
 {
@@ -83,7 +68,7 @@ bool Arena::liveOrDie(uint x, uint y)
         return !currentCellStatus && numAlive == 3; //death
 }
 
-void Arena::updateCells(void)
+void Arena::ShowAndUpdateCells(void)
 {
         vector<vector<bool> > newVector(_vector.size(), vector<bool>(_vector.size(), false));
 
@@ -92,9 +77,12 @@ void Arena::updateCells(void)
         {
                 for(uint x = 0; x < _vector.size(); x++)
                 {
+			if(_vector[x][y]) cout << "▄ ";
+                        else cout << "  ";
                         bool decision = liveOrDie(x, y);
                         newVector[x][y] = decision;
                 }
+		cout << endl;
         }
 
         if(_vector == newVector) exit(1);
@@ -125,14 +113,13 @@ int main()
 {
         Arena *a = new Arena(30);
         a->generateRandom();
-        a->showCells();
+        a->ShowAndUpdateCells();
 
 	int generation = 0;
 
         while(true)
         {
-                a->updateCells();
-                a->showCells();
+                a->ShowAndUpdateCells();
 		generation++;
 		cout << generation << endl;
                 sleep(50);
