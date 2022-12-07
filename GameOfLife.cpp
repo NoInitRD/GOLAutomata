@@ -18,11 +18,12 @@ using namespace std;
 class Arena {
 public:
         vector<vector<bool> > _vector;
-	int _generation;
 	int _sizeX; 
 	int _sizeY;
+	int _generation;
+	int _numAlive;
+	short _repetitions; //keeps track of duplicate generations
 
-        void flipCellStatus(uint x, uint y);
         bool liveOrDie(uint x, uint y);
         bool getCellStatus(uint x, uint y);
         bool cellExists(uint x, uint y);
@@ -30,20 +31,27 @@ public:
         void generateRandom(void);
 
         Arena(){};
-	Arena(int const sizeX, int const sizeY): _vector(sizeX, vector<bool>(sizeY, false)), _sizeX(sizeX), _sizeY(sizeY) { _generation = 1; }
-	Arena(int const size): _vector(size, vector<bool>(size, false)), _sizeX(size), _sizeY(size) { _generation = 1; }
+
+	Arena(int const sizeX, int const sizeY): _vector(sizeX, vector<bool>(sizeY, false)), _sizeX(sizeX), _sizeY(sizeY) 
+	{ 
+		_generation = 0; 
+		_numAlive = 0;
+		_repetitions = 0;
+	}
+
+	Arena(int const size): _vector(size, vector<bool>(size, false)), _sizeX(size), _sizeY(size) 
+	{
+		_generation = 0; 
+		_numAlive = 0;
+		_repetitions = 0;
+	}
+
 	Arena(Arena const &src) { _vector = src._vector; }
 };
 
 bool Arena::cellExists(uint x, uint y) { return x < _vector.size() && y < _vector.size(); }
 
 void clearScreen(void) { cout << "\033[2J\033[1;1H"; } //ANSI escape characters
-
-void Arena::flipCellStatus(uint x, uint y)
-{
-        if(!cellExists(x, y)) return;
-        _vector[x][y] = !_vector[x][y];
-}
 
 bool Arena::getCellStatus(uint x, uint y)
 {
@@ -76,6 +84,7 @@ bool Arena::liveOrDie(uint x, uint y)
 void Arena::ShowAndUpdateCells(void)
 {
         vector<vector<bool> > newVector(_vector.size(), vector<bool>(_vector.size(), false));
+	short lastGenPopulation = _numAlive;
 
 	//updates each cell in 2D vector
         for(uint y = 0; y < _sizeY; y++)
@@ -84,15 +93,22 @@ void Arena::ShowAndUpdateCells(void)
                 {
 			if(_vector[x][y]) cout << "▄ ";
                         else cout << "  ";
+
+			bool oldCellStatus = getCellStatus(x, y);
                         bool decision = liveOrDie(x, y);
                         newVector[x][y] = decision;
+			
+			if(decision == true && oldCellStatus == false) _numAlive++;
+			if(decision == false && oldCellStatus == true) _numAlive--;
                 }
 		cout << endl;
         }
-        if(_vector == newVector) exit(1);
         _vector = newVector;
-	_generation++;
 
+	if(_numAlive == lastGenPopulation) _repetitions++;
+	if(_repetitions >= 50) exit(1);
+
+	_generation++;
 }
 
 bool randomBool(void)
@@ -108,9 +124,12 @@ void Arena::generateRandom(void)
 	{
                 for(uint x = 0; x < _sizeX; x++)
 		{
-                        _vector[x][y] = randomBool();
+			bool random = randomBool();
+                        _vector[x][y] = random;
+			if(random == true) _numAlive++;
 		}
 	}
+	_generation++;
 }	
 
 void sleep(int ms) { this_thread::sleep_for(std::chrono::milliseconds(ms)); }
@@ -127,8 +146,10 @@ int main()
         {
                 a->ShowAndUpdateCells();
 		cout << "Generation: ";
-		cout << a->_generation << endl;
-                sleep(50);
+		cout << a->_generation;
+		cout << " Number Alive: ";
+		cout << a->_numAlive << endl;
+                sleep(30);
 		clearScreen();
         }
 
