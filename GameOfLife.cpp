@@ -106,7 +106,11 @@ void Arena::ShowAndUpdateCells(void)
         _vector = newVector;
 
 	if(_numAlive == lastGenPopulation) _repetitions++;
-	if(_repetitions >= 50) exit(1);
+	if(_repetitions >= 30)
+	{
+		generateRandom();
+		_repetitions  = 0;
+	}
 
 	_generation++;
 }
@@ -136,7 +140,7 @@ void sleep(int ms) { this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
 int main()
 {
-        Arena *a = new Arena(100,60);
+        Arena *a = new Arena(115,70);
 
 	a->generateRandom(); //randomly fills arena with cells
 
@@ -148,7 +152,9 @@ int main()
 		cout << "Generation: ";
 		cout << a->_generation;
 		cout << " Number Alive: ";
-		cout << a->_numAlive << endl;
+		cout << a->_numAlive;
+		cout << " Repetitions: ";
+		cout << a->_repetitions << endl;
                 sleep(30);
 		clearScreen();
         }
