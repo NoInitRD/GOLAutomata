@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <random>
 #include <chrono>
+#include <cstring>
+#include <fstream>
 
 using namespace std;
 
@@ -23,28 +25,38 @@ public:
 	int _generation;
 	int _numAlive;
 	short _repetitions; //keeps track of duplicate generations
+	bool _writeToFile;
 
         bool liveOrDie(uint x, uint y);
         bool getCellStatus(uint x, uint y);
         bool cellExists(uint x, uint y);
-        void ShowAndUpdateCells(void);
+        void showAndUpdateCells(void);
         void generateRandom(void);
+	void writeArenaToFile(void);
 
         Arena(){};
 
-	Arena(int const sizeX, int const sizeY): _vector(sizeX, vector<bool>(sizeY, false)), _sizeX(sizeX), _sizeY(sizeY) 
-	{ 
-		_generation = 0; 
-		_numAlive = 0;
-		_repetitions = 0;
-	}
+	Arena(int const sizeX, int const sizeY, bool const writeToFile): 
+		_vector(sizeX, vector<bool>(sizeY, false)),
+		_sizeX(sizeX),
+		_sizeY(sizeY),
+		_writeToFile(writeToFile)
+		{
+			_generation = 0; 
+			_numAlive = 0;
+			_repetitions = 0;
+		}
 
-	Arena(int const size): _vector(size, vector<bool>(size, false)), _sizeX(size), _sizeY(size) 
-	{
-		_generation = 0; 
-		_numAlive = 0;
-		_repetitions = 0;
-	}
+	Arena(int const size, bool const writeToFile): 
+		_vector(size, vector<bool>(size, false)),
+		_sizeX(size),
+		_sizeY(size),
+		_writeToFile(writeToFile)
+		{
+			_generation = 0; 
+			_numAlive = 0;
+			_repetitions = 0;
+		}
 
 	Arena(Arena const &src) { _vector = src._vector; }
 };
@@ -81,7 +93,7 @@ bool Arena::liveOrDie(uint x, uint y)
         return !currentCellStatus && numAlive == 3; //death
 }
 
-void Arena::ShowAndUpdateCells(void)
+void Arena::showAndUpdateCells(void)
 {
         vector<vector<bool> > newVector(_vector.size(), vector<bool>(_vector.size(), false));
 	short lastGenPopulation = _numAlive;
@@ -106,7 +118,8 @@ void Arena::ShowAndUpdateCells(void)
         _vector = newVector;
 
 	if(_numAlive == lastGenPopulation) _repetitions++;
-	if(_repetitions >= 30)
+
+	if(_repetitions >= 150) //repetition filter
 	{
 		generateRandom();
 		_repetitions  = 0;
@@ -114,6 +127,22 @@ void Arena::ShowAndUpdateCells(void)
 
 	_generation++;
 }
+
+void Arena::writeArenaToFile(void)
+{
+	ofstream gridFile;
+	gridFile.open("grid.txt");
+	for(uint y = 0; y < _sizeY; y++)
+	{
+		for(uint x = 0; x < _sizeX; x++)
+		{
+			if(_vector[x][y]) gridFile << true;
+			else gridFile << false;
+		}
+	}
+	gridFile.close();
+}
+
 
 bool randomBool(void)
 {
@@ -133,32 +162,64 @@ void Arena::generateRandom(void)
 			if(random == true) _numAlive++;
 		}
 	}
+
+	if(_writeToFile) writeArenaToFile();
+
 	_generation++;
 }	
 
 void sleep(int ms) { this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
-int main()
+bool argumentHandler(int args, char *argArry[])
 {
-        Arena *a = new Arena(115,70);
+	for(int i = 1; i < args; i++)
+	{
+		char *curr = argArry[i];
+
+		if(strcmp(curr, "-o") == 0)
+		{
+			return true;
+		}
+		else
+		{
+			cout << "-------------------------------" << endl;
+			cout << "Game of life" << endl;
+			cout << "-h: prints this message" << endl;
+			cout << "-o: records the seed in a file" << endl;
+			cout << "--------------------------------" << endl;
+			exit(1);
+		}
+	}
+	return false;
+}
+
+int main(int args, char *argArry[])
+{
+
+	bool writeToFile = argumentHandler(args, argArry);
+
+        Arena *a = new Arena(55,55, writeToFile); //115
 
 	a->generateRandom(); //randomly fills arena with cells
+			
+	//add whether to record grid each restart to the constructor 
 
 	int generation = 0;
 
         while(true)
         {
-                a->ShowAndUpdateCells();
+                a->showAndUpdateCells();
 		cout << "Generation: ";
 		cout << a->_generation;
 		cout << " Number Alive: ";
 		cout << a->_numAlive;
 		cout << " Repetitions: ";
 		cout << a->_repetitions << endl;
-                sleep(30);
+                sleep(15);
 		clearScreen();
         }
 
         delete a;
         return 0;
+	
 }
